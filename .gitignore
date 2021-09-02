@@ -5,7 +5,10 @@
 
 # normal ignores:
 *.exe
-nimcache
 *.pdb
 *.ilk
 .*
+
+# directories:
+nimcache
+testresults

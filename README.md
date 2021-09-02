@@ -1,8 +1,13 @@
-# You can use this nim template to jump start your nim library or project
+# Chibi
 
-This template includes:
+## Cute little modular text editor written in Nim
 
-* MIT licence
-* src directory and a private common.nim
-* test directory
-* GitHub Actions to run the tests on GitHub
+Work in progress...
+
+### Done
+
+- History saving
+
+### TODO
+
+- Basically everything else
