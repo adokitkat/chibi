@@ -52,10 +52,8 @@ waitFor testRead(file_path, str & str2)
 
 let x = loadAsyncFile(file_path)
 
-when defined(windows):
-  assert x == str
-else:
+when not defined(windows):
   assert x == str & str2
 
 ## END
-#removeFile(path)
+removeFile(file_path)
