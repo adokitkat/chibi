@@ -6,8 +6,11 @@ Work in progress...
 
 ### Done
 
+- Terminal fullscreen view
+- File loading into text buffer
+- Displaying text buffer in terminal
 - History saving
 
 ### TODO
 
-- Basically everything else
+- Everything else
