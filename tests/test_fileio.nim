@@ -1,4 +1,4 @@
-import std/[asyncdispatch, asyncfile, os, strformat]
+import std/[asyncdispatch, asyncfile, os, strformat, strutils]
 
 import chibi/fileio
 
@@ -26,7 +26,7 @@ proc testRead(path, expected: string) {.async.} =
   aFile = openAsyncFileAt(path)
   aFileContent = await aFile.readAll()
   aFile.close()
-  assert aFileContent == expected
+  assert aFileContent.replace("\r\n", "\n") == expected
 
 proc testWrite(path, to_write: string) {.async.} =
   aFile = openAsyncFileAt(path, fmReadWrite)
@@ -34,7 +34,7 @@ proc testWrite(path, to_write: string) {.async.} =
   aFile.setFilePos(0)
   aFileContent = await aFile.readAll()
   aFile.close()
-  assert aFileContent == to_write
+  assert aFileContent.replace("\r\n", "\n") == to_write
 
 prepareFile()
 waitFor testRead(file_path, str)
