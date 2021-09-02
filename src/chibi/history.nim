@@ -6,9 +6,7 @@ type
   History* = ref HistoryObj
   HistoryObj = object
     first, last, active: HistoryBuffer
-    len: Natural
-    undo_count: Natural
-    limit: Natural
+    limit, len, undo_count: Natural
     id_iterator: iterator(): Natural
 
   HistoryBuffer* = ref HistoryBufferObj
@@ -17,6 +15,8 @@ type
     id: Natural
     timestamp: DateTime
     content: Content
+
+  HistoryContent* = tuple[pos: Natural, str: string] # TODO:
 
 proc initHistoryBuffer(id: Natural,
                       prev: HistoryBuffer = nil,
