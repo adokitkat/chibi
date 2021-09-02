@@ -26,6 +26,7 @@ proc testRead(path, expected: string) {.async.} =
   aFile = openAsyncFileAt(path)
   aFileContent = await aFile.readAll()
   aFile.close()
+  echo aFileContent
   assert aFileContent.replace("\r\n", "\n") == expected
 
 proc testWrite(path, to_write: string) {.async.} =
@@ -34,6 +35,7 @@ proc testWrite(path, to_write: string) {.async.} =
   aFile.setFilePos(0)
   aFileContent = await aFile.readAll()
   aFile.close()
+  echo aFileContent
   assert aFileContent.replace("\r\n", "\n") == to_write
 
 prepareFile()
