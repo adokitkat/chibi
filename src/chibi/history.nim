@@ -1,3 +1,5 @@
+## Undo/redo history module for `chibi`
+
 import std/[strformat, times]
 
 import common
@@ -105,3 +107,17 @@ func len*(h: History): Natural = h.len
 #func getActive*(h: History): HistoryBuffer = h.active # TODO: even good idea?
 func getTimestamp*(h: History): DateTime = h.active.timestamp
 func getContent*(h: History): string = h.active.content
+
+when isMainModule:
+  var history = initHistory(3)
+  history.add("Hello, world!")
+  history.add("Hello, Vim!")
+  discard history.undo()
+  history.add("Hello, Nim!")
+  history.add("Hello, Zim?")
+  discard history.undo()
+  echo history
+  echo history.getContent()
+  discard history.redo()
+  echo history
+  echo history.getContent()

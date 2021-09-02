@@ -1,7 +1,14 @@
+## `chibi` text editor
+
 #import std/[lists, ropes, streams, strformat, times, unicode]
+import std/[os, terminal]
 
+import chibi/textbuffer
 import chibi/history
+import chibi/fileio
+import chibi/view
 
+#[
 type
   Editor* = object
     walls: seq[Wall]
@@ -12,25 +19,28 @@ type
     pos: Natural
     history: History
     historyLimit: Natural
+]#
+
+proc exitProc() {.noconv.} =
+  deinitView()
+  quit(0)
 
 proc chibi() =
 
-  var
-    #wall = new Wall
-    history = initHistory(3)
+  setControlCHook(exitProc)
 
-  # For now...
-  history.add("Hello, world!")
-  history.add("Hello, Vim!")
-  discard history.undo()
-  history.add("Hello, Nim!")
-  history.add("Hello, Zim?")
-  discard history.undo()
-  echo history
-  echo history.getContent()
-  discard history.redo()
-  echo history
-  echo history.getContent()
+  var #wall = new Wall
+    history = initHistory(3)
+    textbuffer = initTextBuffer()
+  
+  initView()
+  textbuffer.loadText("tests/test.txt")
+
+  while true:
+    textbuffer.display()
+    sleep(200)
+    terminal.setCursorPos(0, cursorPosEnd.y)
+    echo "Cursor position: (", cursorPos.x, ", ", cursorPos.y, ")"
 
 when isMainModule:
   chibi()
