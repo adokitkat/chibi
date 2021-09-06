@@ -9,7 +9,9 @@ Work in progress...
 - Terminal fullscreen view
 - File loading into text buffer
 - Displaying text buffer in terminal
-- History saving
+- Control cursor via arrows
+- Catch signals (interrupt, pause, resize)
+- History saving?
 
 ### TODO
 

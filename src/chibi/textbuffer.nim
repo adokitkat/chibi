@@ -9,7 +9,7 @@ import fileio
 type
   TextBuffer* = ref TextBufferObj
   TextBufferObj = object
-    text: ref seq[Rune]
+    text*: ref seq[Rune]
     pos: Natural
 
   #TextCell = object
@@ -26,3 +26,6 @@ proc loadText*(tb: var TextBuffer, path: string) =
   tb.text[] = fileio.loadFile(path).toRunes()
 
 proc getText*(tb: TextBuffer): ref seq[Rune] = tb.text
+
+proc write*(tb: TextBuffer, ch: char, pos: Natural) =
+  tb.text[][pos] = ($ch).runeAt(0)

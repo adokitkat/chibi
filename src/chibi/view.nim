@@ -5,14 +5,23 @@
 import std/[os, posix, strutils, termios, terminal, unicode]
 
 import textbuffer
+import controls
 
 proc initView*()
 proc deinitView*()
 proc reinitView()
+#proc redraw()
+
+type
+  # TODO: Maybe plain `object` insted of `ref object`? It's a small structure.
+  #View* = ref ViewObj
+  View* = object
+    cursorPos*, cursorPosFileEnd*: tuple[x, y: int]
+    terminalSize*: tuple[w, h: int]
+    resized*: bool
 
 var
-  cursorPos*: tuple[x: int, y: int] = (0, 0)
-  cursorPosEnd*: tuple[x: int, y: int] = (0, 0)
+  scene*: View
 
 when defined(posix):
   proc sigtstpHandler(sig: cint) {.noconv.} =
@@ -27,10 +36,16 @@ when defined(posix):
     signal(SIGCONT, sigcontHandler)
     signal(SIGTSTP, sigtstpHandler) # Reconnects signal handlers
     reinitView()
+  
+  proc sigwinchHandler(sig: cint) {.noconv.} =
+    ## Terminal window reize signal (28 on x86/ARM)
+    scene.terminalSize = terminal.terminalSize()
+    scene.resized = true
 
   proc initSignalHandlers() =
     signal(SIGCONT, sigcontHandler)
     signal(SIGTSTP, sigtstpHandler)
+    signal(cint(28), sigwinchHandler) # SIGWINCH
 
   proc nonblock(enabled: bool) =
     var ttyState: Termios
@@ -75,8 +90,9 @@ when defined(posix):
       eraseScreen()
 
   proc getCursorPos*(): tuple[x, y: int] =
-    ## Request cursor position with `\e[6n"``
-    ## Get response like \e[y;xR` where y, x are coordinates
+    ## Request cursor position with `\e[6n"`.
+    ## 
+    ## Get response like `\e[y;xR` where `y` and `x` are coordinates.
     if terminal.isatty(stdout):
       stdout.write("\e[6n")
       var
@@ -99,6 +115,27 @@ when defined(windows):
   proc enterFullScreen()
   proc exitFullScreen()
 
+proc display*(tb: TextBuffer) =
+  terminal.setCursorPos(0,0)
+  terminal.eraseScreen()
+  stdout.write($(tb.getText()[]))
+  scene.cursorPosFileEnd = getCursorPos()
+  terminal.setCursorPos(scene.cursorPos.x-1, scene.cursorPos.y-1)
+  stdout.flushFile()
+
+proc showCursorPos*() =
+  let pos = getCursorPos()
+  terminal.setCursorPos(0, scene.terminalSize.h-1)
+  stdout.write("Cursor position: (", scene.cursorPos.x, ", ", scene.cursorPos.y, ")")
+  stdout.flushFile()
+  terminal.setCursorPos(pos.x, pos.y)
+
+proc checkTerminalResize*(tb: TextBuffer) =
+  if scene.resized:
+    tb.display()
+    #showCursorPos()
+    scene.resized = false
+
 proc reinitView() =
   ## initView() without initSignalHandlers()
   nonblock(true)
@@ -108,30 +145,35 @@ proc reinitView() =
   terminal.setCursorPos(0,0)
 
 proc initView*() =
-  ## Use to init view
+  ## Initializes view module
+  ## 
+  ## Use before anything else in this module
+  
+  #new view
+  scene = View(cursorPos: (0, 0),
+              cursorPosFileEnd: (0, 0),
+              terminalSize: terminal.terminalSize(),
+              resized: false)
   initSignalHandlers()
   reinitView()
 
 proc deinitView*() =
-  ## Use when quitting program with Ctrl + C like:
+  ## Deinitializes view module
+  ##
+  ## Use when quitting program with `Ctrl+C` like:
   ## 
-  ## proc exitProc() {.noconv.} =
-  ##   deinitView()
-  ##   quit(0)
+  ## .. code:: nim
   ## 
-  ## setControlCHook(exitProc)
+  ##   proc exitProc() {.noconv.} =
+  ##     deinitView()
+  ##     quit(0)
+  ## 
+  ##   setControlCHook(exitProc)
   
   nonblock(false)
   exitFullScreen()
   terminal.resetAttributes()
   terminal.showCursor()
-
-proc display*(tb: TextBuffer) =
-  terminal.setCursorPos(0,0)
-  stdout.write($(tb.getText()[]))
-  cursorPosEnd = getCursorPos()
-  terminal.setCursorPos(cursorPos.x, cursorPos.y)
-  stdout.flushFile()
 
 when isMainModule:
   proc exitProc() {.noconv.} =

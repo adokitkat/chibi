@@ -3,6 +3,7 @@
 #import std/[lists, ropes, streams, strformat, times, unicode]
 import std/[os, terminal]
 
+import chibi/controls
 import chibi/textbuffer
 import chibi/history
 import chibi/fileio
@@ -30,17 +31,21 @@ proc chibi() =
   setControlCHook(exitProc)
 
   var #wall = new Wall
-    history = initHistory(3)
+    #history = initHistory(3)
     textbuffer = initTextBuffer()
+    change: bool = false
   
   initView()
-  textbuffer.loadText("tests/test.txt")
-
+  textbuffer.loadText("tests/test2.txt")
+  view.display(textbuffer)
+  #view.showCursorPos()
   while true:
-    textbuffer.display()
-    sleep(200)
-    terminal.setCursorPos(0, cursorPosEnd.y)
-    echo "Cursor position: (", cursorPos.x, ", ", cursorPos.y, ")"
+    change = controls.control(textbuffer)
+    #view.showCursorPos()
+    if change:
+      view.display(textbuffer)
+    view.checkTerminalResize(textbuffer)
+    sleep(10)
 
 when isMainModule:
   chibi()
