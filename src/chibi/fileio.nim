@@ -7,14 +7,15 @@ import std/[asyncdispatch, asyncfile, strformat]
 #
 
 template withFile*(file: untyped, filename: string, mode: FileMode, body: untyped) =
-  var file: File
-  try:
-    file = open(filename, mode)
-    body
-  except IOError as e: # Explicitly except
-    quit(e.msg)
-  finally:
-    file.close()
+  block: # Don't implicitly `{.inject.}` used `file` variable name into global scope
+    var file: File
+    try:
+      file = open(filename, mode)
+      body
+    except IOError as e: # Explicitly except
+      quit(e.msg)
+    finally:
+      file.close()
 
 proc openFileAt*(path: string,
                 filemode: FileMode = fmRead,
@@ -39,7 +40,7 @@ proc loadFile*(path: string): string {.tags: [IOEffect, ReadIOEffect, WriteIOEff
 # Async IO
 #
 
-proc loadFileAsync*(filename: string): Future[string] {.async.} =
+proc readFileAsync*(filename: string): Future[string] {.async.} =
   let
     file: AsyncFile = openAsync(filename, fmRead)
     future = file.readAll()
@@ -51,3 +52,15 @@ proc loadFileAsync*(filename: string): Future[string] {.async.} =
   else:
     # TODO: Raise exception or show message that loading failed
     return ""
+
+proc writeFileAsync*(filename: string, data: string): Future[bool] {.async.} =
+  let
+    file: AsyncFile = openAsync(filename, fmWrite)
+    future = file.write(data)
+  yield future # Yields potentially unfinished Future[bool]
+  # Continiues here when `waitFor` or `await` is called
+  file.close() # The Future is either finised or failed
+  if future.finished:
+    return true # If finished return real value
+  else:
+    return false

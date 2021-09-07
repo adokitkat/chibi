@@ -31,7 +31,7 @@ proc exitProc() {.noconv.} =
 proc chibi() =
   setControlCHook(exitProc)
 
-  let text_future: Future[string] = loadFileAsync("tests/test2.txt") # Asynchronously load text
+  let text_future: Future[string] = readFileAsync("tests/test2.txt") # Asynchronously load text
 
   var #wall = new Wall
     #history = initHistory(3)
