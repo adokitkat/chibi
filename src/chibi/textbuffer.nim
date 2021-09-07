@@ -2,7 +2,7 @@
 
 import std/[unicode]
 
-import fileio
+#import fileio
 
 # TODO: Paging?
 
@@ -22,8 +22,11 @@ proc initTextBuffer*(): TextBuffer =
   result.pos = 0
   new result.text
 
-proc loadText*(tb: var TextBuffer, path: string) =
-  tb.text[] = fileio.loadFile(path).toRunes()
+proc loadData*(tb: var TextBuffer, data: string) =
+  tb.text[] = data.toRunes()
+
+#proc loadText*(tb: var TextBuffer, path: string) =
+#  tb.text[] = fileio.loadFile(path).toRunes()
 
 proc getText*(tb: TextBuffer): ref seq[Rune] = tb.text
 

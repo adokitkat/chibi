@@ -23,7 +23,7 @@ Work in progress...
 ### Done
 
 - Terminal fullscreen view
-- File loading
+- Async file loading
 - Displaying the text buffer
 - Controls (arrows, ...)
 - Catching signals: interrupt (`SIGINT`), pause (`SIGTSTP`), resize (`SIGWINCH`)

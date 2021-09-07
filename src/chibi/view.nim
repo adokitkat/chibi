@@ -5,7 +5,6 @@
 import std/[os, posix, strutils, termios, terminal, unicode]
 
 import textbuffer
-import controls
 
 proc initView*()
 proc deinitView*()

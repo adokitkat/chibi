@@ -2,18 +2,19 @@
 
 import std/[asyncdispatch, asyncfile, strformat]
 
-proc openAsyncFileAt*(path: string,
-                    filemode: FileMode = fmRead,
-                    pos: Natural = 0): AsyncFile {.tags: [IOEffect, RootEffect].} =
-  ## Use only FileModes fmRead, fmWrite & fmReadWriteExisting (maybe fmReadWrite?)
-  ## fmAppend doesn't seem to work on Windows
-  result = openAsync(path, filemode)
-  result.setFilePos(pos)
+#
+# Synchronous IO
+#
 
-proc loadAsyncFile*(path: string): string {.tags: [ReadIOEffect, IOEffect, TimeEffect, RootEffect].} =
-  let file = openAsyncFileAt(path)
-  result = waitFor file.readAll()
-  file.close()
+template withFile*(file: untyped, filename: string, mode: FileMode, body: untyped) =
+  var file: File
+  try:
+    file = open(filename, mode)
+    body
+  except IOError as e: # Explicitly except
+    quit(e.msg)
+  finally:
+    file.close()
 
 proc openFileAt*(path: string,
                 filemode: FileMode = fmRead,
@@ -33,3 +34,20 @@ proc loadFile*(path: string): string {.tags: [IOEffect, ReadIOEffect, WriteIOEff
     stderr.write(fmt"Couldn't open the file '{path}'\n{e.msg}\n")
   finally:
     file.close()
+
+#
+# Async IO
+#
+
+proc loadFileAsync*(filename: string): Future[string] {.async.} =
+  let
+    file: AsyncFile = openAsync(filename, fmRead)
+    future = file.readAll()
+  yield future # Yields potentially unfinished Future[string]
+  # Continiues here when `waitFor` or `await` is called
+  file.close() # The Future is either finised or failed
+  if future.finished:
+    return future.read() # If finished return real value
+  else:
+    # TODO: Raise exception or show message that loading failed
+    return ""

@@ -1,7 +1,9 @@
 ## `chibi` text editor
+## 
+## Author: Adam Múdry
 
 #import std/[lists, ropes, streams, strformat, times, unicode]
-import std/[os, terminal]
+import std/[asyncdispatch, os]
 
 import chibi/controls
 import chibi/textbuffer
@@ -27,8 +29,9 @@ proc exitProc() {.noconv.} =
   quit(0)
 
 proc chibi() =
-
   setControlCHook(exitProc)
+
+  let text_future: Future[string] = loadFileAsync("tests/test2.txt") # Asynchronously load text
 
   var #wall = new Wall
     #history = initHistory(3)
@@ -36,9 +39,8 @@ proc chibi() =
     change: bool = false
   
   initView()
-  textbuffer.loadText("tests/test2.txt")
+  textbuffer.loadData(waitFor text_future) # Async text load finish
   view.display(textbuffer)
-  #view.showCursorPos()
   while true:
     change = controls.control(textbuffer)
     #view.showCursorPos()

@@ -29,6 +29,7 @@ let keySequences = {
 when defined(posix):
 
   proc kbhit(): cint = # TODO: What is going on...
+    ## "Keyboard hit"
     var tv: Timeval
     tv.tv_sec = Time(0)
     tv.tv_usec = 0
@@ -64,6 +65,10 @@ when defined(posix):
           if s == inputSeq:
             key = keyCode.Key
     result = key
+
+when defined(windows):
+  proc kbhit(): cint {.importc: "_kbhit", header: "<conio.h>".}
+  # TODO
 
 proc to1D(t: tuple[x, y: int]): Natural = 
   # TODO: 
